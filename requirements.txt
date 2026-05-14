@@ -1,4 +1,4 @@
-python-telegram-bot==20.7
+python-telegram-bot==22.7
 openai==2.36.0
 pandas
 matplotlib
