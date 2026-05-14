@@ -1,0 +1,10 @@
+python-telegram-bot==20.7
+openai==2.36.0
+pandas
+matplotlib
+seaborn
+python-dotenv
+openpyxl
+httpx
+flask
+gunicorn

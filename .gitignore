@@ -1,0 +1,17 @@
+# Секреты
+.env
+
+# Виртуальное окружение
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Временные файлы
+*.log
+temp_analysis/
+uploads/
+
+# IDE
+.vscode/
+.idea/
