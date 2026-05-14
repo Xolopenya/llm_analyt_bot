@@ -174,54 +174,67 @@ print(df.head(3).to_json(orient='records', force_ascii=False))
 
         code = code_blocks[0]
 
-        # 🔍 ЛОГИРУЕМ весь код (не только первые 500 символов)
-        logger.info("=== СГЕНЕРИРОВАННЫЙ КОД ===")
+        # ЛОГИРУЕМ весь код
+        logger.info("СГЕНЕРИРОВАННЫЙ КОД")
         logger.info(code)
-        logger.info("=== КОНЕЦ КОДА ===")
+        logger.info("КОНЕЦ КОДА")
 
-        # 1. ВСЕГДА добавляем базовые импорты для анализа данных
-        imports_to_add = [
-            "import pandas as pd",
-            "import matplotlib",
-            "matplotlib.use('Agg')",
-            "import matplotlib.pyplot as plt"
-        ]
+        # создаём обязательные импорты
+        required_imports = []
 
-        # Проверяем, что уже есть в коде
-        final_imports = []
-        for imp in imports_to_add:
-            if imp not in code:
-                final_imports.append(imp)
+        # проверяем и добавляем pandas
+        if "import pandas as pd" not in code and "from pandas" not in code:
+            required_imports.append("import pandas as pd")
 
-        # Дополнительные проверки
-        if "sns." in code and "import seaborn as sns" not in code:
-            final_imports.append("import seaborn as sns")
+        # проверяем и добавляем matplotlib (ВАЖНО!)
+        uses_matplotlib = (
+                "matplotlib." in code or
+                "plt." in code or
+                "sns." in code
+        )
 
-        if "np." in code and "import numpy as np" not in code:
-            final_imports.append("import numpy as np")
+        if uses_matplotlib:
+            if "import matplotlib" not in code and "from matplotlib" not in code:
+                required_imports.insert(0, "import matplotlib")  # 🔥 Вставляем ПЕРВЫМ!
 
-        # 2. Добавляем импорты в начало
-        if final_imports:
-            logger.info(f"Добавляем импорты: {final_imports}")
-            code = "\n".join(final_imports) + "\n\n" + code
+            if "matplotlib.use('Agg')" not in code and "matplotlib.use(\"Agg\")" not in code:
+                required_imports.append("matplotlib.use('Agg')")
 
-        # 3. Удаляем plt.show()
+            if "import matplotlib.pyplot as plt" not in code and "from matplotlib.pyplot" not in code:
+                required_imports.append("import matplotlib.pyplot as plt")
+
+            if "sns." in code and "import seaborn as sns" not in code:
+                required_imports.append("import seaborn as sns")
+
+        # проверяем numpy
+        if "np." in code and "import numpy as np" not in code and "from numpy" not in code:
+            required_imports.append("import numpy as np")
+
+        # добавляем импорты В САМОЕ НАЧАЛО кода
+        if required_imports:
+            logger.info(f"Добавляем импорты: {required_imports}")
+            code = "\n".join(required_imports) + "\n\n" + code
+
+            logger.info("Код с импортами (первые 300 символов):")
+            logger.info(code[:300])
+
+        # удаляем plt.show()
         code = re.sub(r'plt\.show\(\s*\)', '', code)
 
-        # 4. Добавляем закрытие фигур в конец
+        # добавляем закрытие фигур в конец
         if "plt.close('all')" not in code:
             code += "\nplt.close('all')\n"
 
-        # 5. Удаляем параметр errors из read_csv/read_excel
+        # удаляем параметр errors из read_csv/read_excel
         code = re.sub(
             r"(pd\.(?:read_csv|read_excel)\([^)]*),\s*errors=['\"][^'\"]+['\"]([^)]*\))",
             r"\1\2",
             code
         )
 
-        logger.info("=== ИТОГОВЫЙ КОД ===")
+        logger.info("ИТОГОВЫЙ КОД")
         logger.info(code[:1000])  # Показываем больше
-        logger.info("=== КОНЕЦ ИТОГОВОГО КОДА ===")
+        logger.info("КОНЕЦ ИТОГОВОГО КОДА")
 
         logger.info("Выполняем код...")
         execution = await asyncio.to_thread(run_code_safely, code, work_dir)
