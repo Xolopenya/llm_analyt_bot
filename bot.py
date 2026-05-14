@@ -5,7 +5,6 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 from config import TELEGRAM_BOT_TOKEN
 from handlers.file_handler import handle_file, handle_text
 
-# 🔥 Настройка логирования для Render
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO,
@@ -38,7 +37,7 @@ def main():
 
     logger.info("Бот запущен, жду сообщения...")
 
-    # 🔥 Запускаем polling (блокирует процесс, но это нормально для Render)
+    # Запускаем polling
     # drop_pending_updates=True — игнорировать старые сообщения при старте
     application.run_polling(allowed_updates=Update.ALL_TYPES, drop_pending_updates=True)
 
